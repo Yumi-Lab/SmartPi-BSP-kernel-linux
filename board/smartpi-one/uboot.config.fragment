@@ -1,0 +1,6 @@
+# SmartPi One (Yumi Lab) — nanopi_m1 base + custom DRAM tuning
+CONFIG_DRAM_CLK=576
+CONFIG_DRAM_ZQ=3881979
+CONFIG_DRAM_ODT_EN=y
+# Silent boot
+CONFIG_PREBOOT=""

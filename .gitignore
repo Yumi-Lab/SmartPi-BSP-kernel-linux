@@ -1,0 +1,5 @@
+buildroot/
+*.img
+*.img.gz
+*.tar.gz
+build.log

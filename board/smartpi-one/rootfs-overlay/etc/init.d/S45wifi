@@ -1,0 +1,29 @@
+#!/bin/sh
+# Start WiFi (RTL8188EU on SmartPi One)
+
+WIFI_CONF="/etc/wpa_supplicant.conf"
+
+case "$1" in
+  start)
+    if [ -f "$WIFI_CONF" ]; then
+      printf "Starting WiFi: "
+      /sbin/ifconfig wlan0 up
+      /usr/sbin/wpa_supplicant -B -i wlan0 -c "$WIFI_CONF"
+      /sbin/udhcpc -i wlan0 -b -q &
+      echo "OK"
+    else
+      echo "WiFi: no config found ($WIFI_CONF), skipping"
+      echo "  Run: wpa_passphrase \"SSID\" \"password\" > $WIFI_CONF"
+    fi
+    ;;
+  stop)
+    printf "Stopping WiFi: "
+    killall wpa_supplicant 2>/dev/null
+    /sbin/ifconfig wlan0 down 2>/dev/null
+    echo "OK"
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}"
+    exit 1
+    ;;
+esac

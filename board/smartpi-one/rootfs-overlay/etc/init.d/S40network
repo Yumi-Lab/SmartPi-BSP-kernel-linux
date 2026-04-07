@@ -1,0 +1,22 @@
+#!/bin/sh
+# Start network interfaces
+
+case "$1" in
+  start)
+    printf "Starting network: "
+    /sbin/ifconfig lo up
+    # Ethernet
+    /sbin/ifconfig eth0 up
+    /sbin/udhcpc -i eth0 -b -q 2>/dev/null &
+    echo "OK"
+    ;;
+  stop)
+    printf "Stopping network: "
+    /sbin/ifdown -a
+    echo "OK"
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}"
+    exit 1
+    ;;
+esac

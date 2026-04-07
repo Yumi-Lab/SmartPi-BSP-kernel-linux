@@ -1,0 +1,60 @@
+name: Build SmartPi BSP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'configs/**'
+      - 'board/**'
+      - 'Makefile'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: [self-hosted, Linux, X64, yumi-lab]
+    timeout-minutes: 360  # 6h max
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential gcc g++ git wget cpio unzip rsync bc \
+            libncurses5-dev python3 python3-setuptools swig \
+            dosfstools mtools genimage libconfuse-dev \
+            file bison flex libssl-dev || true
+
+      - name: Build BSP image
+        run: make build 2>&1 | tee build.log
+
+      - name: Compress image
+        run: |
+          IMG="buildroot/output/images/sdcard.img"
+          if [ -f "$IMG" ]; then
+            gzip -9 -k "$IMG"
+            echo "=== Image size ==="
+            ls -lh "${IMG}.gz"
+          else
+            echo "ERROR: sdcard.img not found"
+            find buildroot/output/images -type f 2>/dev/null
+            exit 1
+          fi
+
+      - name: Upload BSP image
+        uses: actions/upload-artifact@v4
+        with:
+          name: smartpi-bsp-image
+          path: buildroot/output/images/sdcard.img.gz
+          retention-days: 30
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 7
